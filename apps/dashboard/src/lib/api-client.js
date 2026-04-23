@@ -1,5 +1,5 @@
 function trimBaseUrl(baseUrl) {
-  return String(baseUrl || "http://localhost:8000").replace(/\/+$/, "");
+  return String(baseUrl || "/api").replace(/\/+$/, "");
 }
 
 async function fetchJson(url, signal) {

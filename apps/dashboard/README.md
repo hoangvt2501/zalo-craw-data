@@ -20,6 +20,10 @@ Current folder split:
 
 Runtime notes:
 
-- the dashboard now loads live data from the API by default
-- set `NEXT_PUBLIC_API_BASE_URL` if the API is not running at `http://localhost:8000`
-- if API loading fails, the UI falls back to sample data and keeps JSON/JSONL upload support
+- the dashboard now proxies all browser requests through `src/app/api/[...path]/route.js`
+- browser code always calls same-origin `/api/...`, so public deploys do not need direct CORS to the API
+- set `INTERNAL_API_BASE_URL` for the dashboard runtime:
+  - local dev: `http://127.0.0.1:8000`
+  - Cloudflare tunnel / public API: `https://xxxxx.trycloudflare.com`
+- optional: set `API_PROXY_TOKEN` and validate `X-Internal-Token` in the API if you want a shared secret between dashboard and backend
+- if API loading fails, the UI still keeps JSON/JSONL upload support for manual review
