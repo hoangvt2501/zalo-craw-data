@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hotel-intel.local/schemas/hotel_deal.schema.json",
+  "title": "HotelDeal",
+  "description": "Extracted hotel deal from a Zalo message, matched against the property database.",
+  "type": "object",
+  "required": ["hotelName"],
+  "properties": {
+    "hotelName": { "type": "string" },
+    "stars": { "type": ["integer", "null"] },
+    "location": { "type": ["string", "null"] },
+    "locationSub": { "type": ["string", "null"] },
+    "locationRaw": { "type": ["string", "null"] },
+    "address": { "type": ["string", "null"] },
+    "checkinDates": { "type": "array", "items": { "type": "string" } },
+    "checkoutDate": { "type": ["string", "null"] },
+    "durationNights": { "type": ["integer", "null"] },
+    "priceMinVnd": { "type": ["integer", "null"] },
+    "priceMaxVnd": { "type": ["integer", "null"] },
+    "commissionVnd": { "type": ["integer", "null"] },
+    "commissionPct": { "type": ["number", "null"] },
+    "commissionType": { "type": ["string", "null"] },
+    "includesBreakfast": { "type": ["boolean", "null"] },
+    "extraServices": { "type": "array", "items": { "type": "string" } },
+    "contactPhone": { "type": ["string", "null"] },
+    "contactName": { "type": ["string", "null"] },
+    "contactCompany": { "type": ["string", "null"] },
+    "propertyId": { "type": ["string", "null"] },
+    "propertyName": { "type": ["string", "null"] },
+    "matchScore": { "type": ["number", "null"] },
+    "matched": { "type": "boolean" },
+    "verificationMethod": { "type": ["string", "null"] },
+    "aiVerified": { "type": ["boolean", "null"] },
+    "roomTypes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": ["string", "null"] },
+          "quantity": { "type": ["integer", "null"] },
+          "priceVnd": { "type": ["integer", "null"] },
+          "pricePer": { "type": ["string", "null"] },
+          "includesBreakfast": { "type": ["boolean", "null"] }
+        }
+      }
+    }
+  }
+}

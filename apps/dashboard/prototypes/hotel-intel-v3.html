@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hotel Intel — Price Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:       #070a10;
+  --bg2:      #0c1118;
+  --bg3:      #121820;
+  --bg4:      #18202c;
+  --line:     #1c2736;
+  --line2:    #243040;
+  --gold:     #c8a84b;
+  --gold-d:   rgba(200,168,75,.10);
+  --gold-g:   linear-gradient(135deg,#c8a84b,#e8c87a);
+  --teal:     #1fcec3;
+  --green:    #22c55e;
+  --green-d:  rgba(34,197,94,.10);
+  --red:      #ef4444;
+  --red-d:    rgba(239,68,68,.10);
+  --amber:    #f59e0b;
+  --indigo:   #7c6fe0;
+  --text:     #d8e0ee;
+  --muted:    #5e7899;
+  --muted2:   #3d5068;
+  --r:        10px;
+  --shadow:   0 8px 32px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Geist',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ═══ LAYOUT ═══ */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:210px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50}
+.main{margin-left:210px;flex:1;padding:24px 28px;min-height:100vh;padding-bottom:100px}
+
+/* ═══ SIDEBAR ═══ */
+.s-head{padding:20px 18px 18px;border-bottom:1px solid var(--line)}
+.s-brand{font-family:'Instrument Serif',serif;font-size:17px;color:var(--gold);display:flex;align-items:center;gap:7px}
+.s-brand::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px var(--gold);flex-shrink:0}
+.s-tagline{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:1.8px;text-transform:uppercase;padding-left:12px;font-family:'Geist Mono',monospace}
+.s-nav{padding:12px 0;flex:1}
+.s-item{display:flex;align-items:center;gap:8px;padding:9px 18px;cursor:pointer;
+  color:var(--muted);font-size:12.5px;font-weight:500;transition:all .15s;border-left:2px solid transparent}
+.s-item:hover{color:var(--text);background:rgba(255,255,255,.02)}
+.s-item.active{color:var(--gold);background:var(--gold-d);border-left-color:var(--gold)}
+.s-ico{width:14px;text-align:center;font-size:13px}
+.s-sep{height:1px;background:var(--line);margin:6px 0}
+.s-num{margin-left:auto;font-size:10px;font-family:'Geist Mono',monospace;
+  background:var(--bg4);border-radius:4px;padding:1px 6px;color:var(--muted)}
+.s-num.warn{background:rgba(239,68,68,.12);color:#f87171}
+.s-foot{padding:14px 18px;border-top:1px solid var(--line)}
+.s-upload{width:100%;padding:8px;border-radius:7px;background:var(--gold-d);border:1px dashed rgba(200,168,75,.3);
+  color:var(--gold);font-size:11.5px;font-family:'Geist',sans-serif;cursor:pointer;transition:all .15s;font-weight:500}
+.s-upload:hover{border-color:var(--gold);background:rgba(200,168,75,.15)}
+#fileInput{display:none}
+.s-fstatus{font-size:10px;color:var(--muted);text-align:center;margin-top:6px;font-family:'Geist Mono',monospace}
+
+/* ═══ PAGE HEADER ═══ */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
+.ph-left h1{font-family:'Instrument Serif',serif;font-size:21px;color:var(--text);line-height:1.2}
+.ph-left h1 em{color:var(--gold);font-style:italic}
+.ph-left p{font-size:11.5px;color:var(--muted);margin-top:4px;font-family:'Geist Mono',monospace}
+.ph-right{display:flex;align-items:center;gap:8px}
+.pill{background:var(--bg3);border:1px solid var(--line);border-radius:20px;
+  padding:4px 12px;font-size:11px;color:var(--teal);font-weight:600;font-family:'Geist Mono',monospace}
+
+/* ═══ KPI STRIP ═══ */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 14px;position:relative;overflow:hidden;cursor:default}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:1.5px}
+.kpi.k1::after{background:var(--gold-g)}.kpi.k2::after{background:linear-gradient(90deg,var(--teal),#67e8f9)}
+.kpi.k3::after{background:linear-gradient(90deg,var(--green),#86efac)}.kpi.k4::after{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.kpi.k5::after{background:linear-gradient(90deg,var(--indigo),#a78bfa)}
+.kpi-l{font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);font-weight:600;margin-bottom:9px;font-family:'Geist Mono',monospace}
+.kpi-v{font-family:'Instrument Serif',serif;font-size:26px;font-weight:400;color:var(--text);line-height:1}
+.kpi-s{font-size:10.5px;color:var(--muted);margin-top:5px;font-family:'Geist Mono',monospace}
+
+/* ═══ FILTER BAR ═══ */
+.fbar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;
+  padding:12px 14px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r)}
+.fbar-l{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1.2px;white-space:nowrap;font-family:'Geist Mono',monospace}
+.fsel{background:var(--bg3);border:1px solid var(--line);border-radius:6px;padding:6px 10px;
+  font-size:12px;font-family:'Geist',sans-serif;color:var(--text);outline:none;cursor:pointer;transition:border-color .15s}
+.fsel:focus{border-color:var(--gold)}
+.sw{position:relative}
+.sw::before{content:'⌕';position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted);pointer-events:none}
+.finput{background:var(--bg3);border:1px solid var(--line);border-radius:6px;
+  padding:6px 10px 6px 28px;font-size:12px;font-family:'Geist',sans-serif;
+  color:var(--text);outline:none;transition:border-color .15s;width:200px}
+.finput:focus{border-color:var(--gold);background:var(--bg2)}
+.fbtn{padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg3);
+  color:var(--muted);font-size:11.5px;font-family:'Geist',sans-serif;cursor:pointer;transition:all .15s;font-weight:500}
+.fbtn:hover{border-color:var(--line2);color:var(--text)}
+.fbtn.active,.fbtn:active{background:var(--gold-d);border-color:rgba(200,168,75,.4);color:var(--gold)}
+.fcount{margin-left:auto;font-size:11px;color:var(--muted);font-family:'Geist Mono',monospace}
+.fcount b{color:var(--gold)}
+
+/* ═══ VIEW TOGGLE ═══ */
+.vtoggle{display:flex;gap:0;background:var(--bg3);border:1px solid var(--line);border-radius:7px;padding:3px;flex-shrink:0}
+.vbtn{padding:5px 12px;border-radius:5px;font-size:11.5px;font-family:'Geist',sans-serif;
+  cursor:pointer;color:var(--muted);border:none;background:none;transition:all .15s;font-weight:500}
+.vbtn.active{background:var(--bg2);color:var(--gold);box-shadow:var(--shadow)}
+
+/* ═══ GROUPED VIEW ═══ */
+.group-list{display:flex;flex-direction:column;gap:10px}
+.group-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:border-color .2s}
+.group-card:hover{border-color:var(--line2)}
+.group-card.expanded{border-color:rgba(200,168,75,.25)}
+
+.group-head{display:grid;grid-template-columns:1fr auto auto auto auto auto;gap:16px;
+  align-items:center;padding:14px 16px;cursor:pointer;user-select:none}
+.group-head:hover{background:rgba(255,255,255,.01)}
+
+.gh-name{min-width:0}
+.gh-title{font-weight:600;font-size:13.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gh-loc{font-size:11px;color:var(--muted);margin-top:2px;font-family:'Geist Mono',monospace}
+.gh-prop{font-size:10.5px;color:var(--teal);margin-top:2px;font-family:'Geist Mono',monospace}
+
+.offers-badge{background:var(--bg4);border:1px solid var(--line);border-radius:5px;
+  padding:3px 9px;font-size:11px;font-family:'Geist Mono',monospace;color:var(--muted);white-space:nowrap}
+.offers-badge.multi{background:rgba(124,111,224,.1);border-color:rgba(124,111,224,.3);color:var(--indigo)}
+
+.price-best{text-align:right}
+.price-best-val{font-family:'Geist Mono',monospace;font-size:14px;font-weight:600;color:var(--green)}
+.price-best-lbl{font-size:10px;color:var(--muted);margin-top:1px}
+.price-range{text-align:right}
+.price-range-val{font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted)}
+.delta-badge{font-size:10.5px;font-family:'Geist Mono',monospace;border-radius:4px;padding:2px 7px;white-space:nowrap}
+.delta-badge.up{background:rgba(239,68,68,.1);color:#f87171}
+.delta-badge.eq{background:var(--bg4);color:var(--muted)}
+
+.star-b{display:inline-flex;align-items:center;gap:2px;background:var(--gold-d);
+  color:var(--gold);border-radius:4px;padding:2px 6px;font-size:11px;font-weight:600;font-family:'Geist Mono',monospace;white-space:nowrap}
+
+.cmp-btn{padding:5px 11px;border-radius:6px;border:1px solid var(--line2);
+  background:transparent;color:var(--muted);font-size:11px;font-family:'Geist',sans-serif;
+  cursor:pointer;transition:all .15s;font-weight:500;white-space:nowrap;flex-shrink:0}
+.cmp-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-d)}
+.cmp-btn.selected{background:var(--gold-d);border-color:var(--gold);color:var(--gold)}
+
+.expand-ico{font-size:11px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+.group-card.expanded .expand-ico{transform:rotate(180deg)}
+
+/* ═══ OFFERS TABLE (inside group) ═══ */
+.offers-wrap{border-top:1px solid var(--line);background:var(--bg);display:none;overflow:hidden}
+.group-card.expanded .offers-wrap{display:block}
+
+.offers-table{width:100%;border-collapse:collapse}
+.offers-table th{
+  padding:9px 14px;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--muted2);font-weight:600;text-align:left;background:var(--bg2);
+  border-bottom:1px solid var(--line);white-space:nowrap;font-family:'Geist Mono',monospace}
+.offers-table td{padding:11px 14px;font-size:12.5px;border-bottom:1px solid rgba(28,39,54,.6);vertical-align:middle}
+.offers-table tr:last-child td{border-bottom:none}
+.offers-table tr.best-offer{background:rgba(34,197,94,.03)}
+.offers-table tr.best-offer td:first-child{border-left:2px solid var(--green)}
+
+.sender-name{font-weight:500;color:var(--text)}
+.sender-co{font-size:11px;color:var(--muted);margin-top:1px}
+.offer-price{font-family:'Geist Mono',monospace;font-size:13px;font-weight:600}
+.offer-price.best{color:var(--green)}
+.offer-delta{font-size:10.5px;font-family:'Geist Mono',monospace;margin-top:2px}
+.offer-delta.worse{color:#f87171}
+.offer-delta.best{color:var(--green)}
+.com-tag{display:inline-block;background:rgba(31,206,195,.08);color:var(--teal);
+  border-radius:4px;padding:1px 6px;font-size:11px;font-family:'Geist Mono',monospace}
+.date-chip{display:inline-block;background:rgba(124,111,224,.08);color:var(--indigo);
+  border-radius:3px;padding:1px 5px;font-size:10.5px;margin:1px;font-family:'Geist Mono',monospace}
+.bfast-y{color:var(--green);font-size:11.5px}
+.bfast-n{color:var(--muted2);font-size:11.5px}
+.contact-val{font-size:12px;color:var(--muted)}
+.winner-chip{display:inline-block;background:var(--green-d);color:var(--green);
+  border-radius:4px;padding:1px 7px;font-size:10px;font-weight:600;letter-spacing:.5px;margin-left:6px}
+
+/* ═══ FLAT TABLE VIEW ═══ */
+.tcard{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.tscroll{overflow-x:auto}
+table.flat{width:100%;border-collapse:collapse}
+table.flat thead tr{background:var(--bg3);border-bottom:1px solid var(--line)}
+table.flat th{padding:11px 13px;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--muted);font-weight:600;text-align:left;white-space:nowrap;cursor:pointer;
+  transition:color .15s;font-family:'Geist Mono',monospace}
+table.flat th:hover{color:var(--gold)}
+table.flat tbody tr{border-bottom:1px solid rgba(28,39,54,.5);transition:background .12s;cursor:pointer}
+table.flat tbody tr:hover{background:rgba(200,168,75,.03)}
+table.flat td{padding:11px 13px;font-size:12.5px;vertical-align:middle}
+.t-hotel{font-weight:600;font-size:13px}
+.t-loc{font-size:11px;color:var(--muted);margin-top:2px;font-family:'Geist Mono',monospace}
+.t-prop{font-size:10px;color:var(--teal);margin-top:2px;font-family:'Geist Mono',monospace}
+
+/* ═══ COMPARE PANEL ═══ */
+.cmp-bar{
+  position:fixed;bottom:0;left:210px;right:0;
+  background:var(--bg2);border-top:1px solid rgba(200,168,75,.3);
+  padding:0;z-index:40;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 -8px 40px rgba(0,0,0,.5);
+}
+.cmp-bar.open{transform:translateY(0)}
+.cmp-bar-inner{max-width:100%;overflow:hidden}
+
+/* Compare header strip */
+.cmp-header{
+  display:flex;align-items:center;gap:0;padding:10px 20px;
+  border-bottom:1px solid var(--line);background:var(--bg3);
+}
+.cmp-title{font-size:12px;font-weight:600;color:var(--gold);font-family:'Geist Mono',monospace;
+  letter-spacing:.5px;text-transform:uppercase;margin-right:16px}
+.cmp-slots{display:flex;gap:8px;flex:1;overflow:hidden}
+.cmp-slot{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--line2);
+  border-radius:6px;padding:5px 10px;font-size:11.5px;min-width:0;max-width:240px}
+.cmp-slot-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-weight:500}
+.cmp-slot-rm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;
+  line-height:1;padding:0;flex-shrink:0;transition:color .15s}
+.cmp-slot-rm:hover{color:var(--red)}
+.cmp-slot.empty{border-style:dashed;color:var(--muted2);font-size:11px}
+.cmp-actions{display:flex;gap:8px;margin-left:auto;flex-shrink:0}
+.cmp-go{padding:6px 16px;border-radius:6px;background:var(--gold);color:#07090e;
+  font-size:12px;font-weight:700;font-family:'Geist',sans-serif;border:none;cursor:pointer;transition:opacity .15s}
+.cmp-go:hover{opacity:.9}
+.cmp-go:disabled{opacity:.4;cursor:not-allowed}
+.cmp-clear{padding:6px 12px;border-radius:6px;border:1px solid var(--line2);background:none;
+  color:var(--muted);font-size:12px;font-family:'Geist',sans-serif;cursor:pointer;transition:all .15s}
+.cmp-clear:hover{color:var(--text);border-color:var(--line)}
+
+/* Compare table */
+.cmp-table-wrap{overflow-x:auto;max-height:340px;overflow-y:auto}
+.cmp-table{width:100%;border-collapse:collapse;min-width:600px}
+.cmp-table .row-label{
+  padding:10px 16px;font-size:11px;color:var(--muted);font-weight:600;
+  text-transform:uppercase;letter-spacing:1px;background:var(--bg3);
+  border-right:1px solid var(--line);font-family:'Geist Mono',monospace;
+  white-space:nowrap;width:130px;vertical-align:top;border-bottom:1px solid var(--line)
+}
+.cmp-table .cmp-col{
+  padding:10px 14px;font-size:12.5px;vertical-align:top;
+  border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  transition:background .15s;
+}
+.cmp-table .cmp-col.winner{background:rgba(34,197,94,.05)}
+.cmp-table .cmp-col.loser{background:rgba(239,68,68,.03)}
+.cmp-price-val{font-family:'Geist Mono',monospace;font-size:15px;font-weight:600}
+.cmp-price-val.best{color:var(--green)}
+.cmp-price-val.worst{color:#f87171}
+.cmp-diff{font-size:10.5px;font-family:'Geist Mono',monospace;margin-top:3px}
+.cmp-diff.up{color:#f87171}.cmp-diff.best{color:var(--green)}
+.cmp-hotel-name{font-weight:600;font-size:13px;font-family:'Instrument Serif',serif}
+.cmp-hotel-loc{font-size:11px;color:var(--muted);font-family:'Geist Mono',monospace;margin-top:2px}
+.winner-row .row-label{color:var(--green)}
+
+/* ═══ TOAST ═══ */
+.toast{position:fixed;bottom:20px;right:24px;background:var(--bg3);border:1px solid var(--gold);
+  color:var(--gold);padding:9px 15px;border-radius:7px;font-size:12.5px;font-weight:500;
+  z-index:100;transform:translateY(12px);opacity:0;transition:all .25s;pointer-events:none;
+  font-family:'Geist Mono',monospace}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ═══ MODAL ═══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);
+  z-index:60;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--line2);border-radius:14px;
+  width:680px;max-width:95vw;max-height:85vh;overflow-y:auto;padding:24px;
+  transform:translateY(14px) scale(.98);transition:transform .22s;box-shadow:var(--shadow)}
+.overlay.open .modal{transform:translateY(0) scale(1)}
+.m-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.m-name{font-family:'Instrument Serif',serif;font-size:20px;color:var(--text);line-height:1.3}
+.m-loc{font-size:11px;color:var(--muted);margin-top:4px;font-family:'Geist Mono',monospace}
+.m-close{background:var(--bg3);border:1px solid var(--line);color:var(--muted);
+  width:28px;height:28px;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:13px;transition:all .15s;flex-shrink:0}
+.m-close:hover{color:var(--text);border-color:var(--line2)}
+.m-sec-title{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);
+  font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace}
+.m-sec-title::before{content:'';width:2px;height:10px;border-radius:1px;background:var(--gold)}
+.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.mf{background:var(--bg3);border-radius:7px;padding:10px 12px}
+.mf-l{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.9px;margin-bottom:3px;font-family:'Geist Mono',monospace}
+.mf-v{font-size:13px;color:var(--text);font-weight:500}
+
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+
+/* ═══ ANIM ═══ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.kpi{animation:fadeUp .3s ease both}
+.kpi:nth-child(1){animation-delay:.03s}.kpi:nth-child(2){animation-delay:.06s}
+.kpi:nth-child(3){animation-delay:.09s}.kpi:nth-child(4){animation-delay:.12s}
+.kpi:nth-child(5){animation-delay:.15s}
+.group-card{animation:fadeUp .25s ease both}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="s-head">
+    <div class="s-brand">Hotel Intel</div>
+    <div class="s-tagline">Zalo Monitor</div>
+  </div>
+  <nav class="s-nav">
+    <div class="s-item active" onclick="gotoPage('hotels')"><span class="s-ico">▦</span>Deals <span class="s-num" id="sn-hotels">0</span></div>
+    <div class="s-item" onclick="gotoPage('locs')"><span class="s-ico">◎</span>Địa điểm</div>
+    <div class="s-item" onclick="gotoPage('senders')"><span class="s-ico">◉</span>Người gửi</div>
+    <div class="s-sep"></div>
+    <div class="s-item" onclick="gotoPage('unmatched')"><span class="s-ico">△</span>Chưa khớp DB <span class="s-num warn" id="sn-um">0</span></div>
+  </nav>
+  <div class="s-foot">
+    <button class="s-upload" onclick="document.getElementById('fileInput').click()">↑ Load hotels.jsonl</button>
+    <input type="file" id="fileInput" accept=".jsonl,.json" onchange="onFileLoad(event)"/>
+    <div class="s-fstatus" id="file-status">sample data</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HOTELS PAGE -->
+  <div id="p-hotels">
+    <div class="ph">
+      <div class="ph-left">
+        <h1>Hotel <em>deals</em></h1>
+        <p id="last-update">—</p>
+      </div>
+      <div class="ph-right">
+        <div class="vtoggle">
+          <button class="vbtn active" id="vbtn-group" onclick="setView('group')">Grouped</button>
+          <button class="vbtn" id="vbtn-flat" onclick="setView('flat')">Flat</button>
+        </div>
+        <div class="pill" id="ph-badge">0 deals</div>
+      </div>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi k1"><div class="kpi-l">KS unique</div><div class="kpi-v" id="k-props">0</div><div class="kpi-s" id="k-props-s">—</div></div>
+      <div class="kpi k2"><div class="kpi-l">Tổng offers</div><div class="kpi-v" id="k-offers">0</div><div class="kpi-s" id="k-offers-s">—</div></div>
+      <div class="kpi k3"><div class="kpi-l">Giá tốt nhất</div><div class="kpi-v" id="k-best">—</div><div class="kpi-s" id="k-best-s">vnđ</div></div>
+      <div class="kpi k4"><div class="kpi-l">Com TB</div><div class="kpi-v" id="k-com">—</div><div class="kpi-s" id="k-com-s">vnđ</div></div>
+      <div class="kpi k5"><div class="kpi-l">Người gửi</div><div class="kpi-v" id="k-send">0</div><div class="kpi-s" id="k-send-s">—</div></div>
+    </div>
+
+    <div class="fbar">
+      <span class="fbar-l">Lọc</span>
+      <div class="sw"><input class="finput" id="q" placeholder="Tên KS, địa điểm, liên hệ…" oninput="renderHotels()"/></div>
+      <select class="fsel" id="fLoc" onchange="renderHotels()"><option value="">Tất cả tỉnh</option></select>
+      <select class="fsel" id="fStars" onchange="renderHotels()">
+        <option value="">Tất cả sao</option>
+        <option value="5">5★</option><option value="4">4★</option><option value="3">3★</option><option value="0">?★</option>
+      </select>
+      <select class="fsel" id="fPrice" onchange="renderHotels()">
+        <option value="">Tất cả giá</option>
+        <option value="0-1000000">Dưới 1tr</option>
+        <option value="1000000-2000000">1–2tr</option>
+        <option value="2000000-5000000">2–5tr</option>
+        <option value="5000000-99999999">Trên 5tr</option>
+      </select>
+      <select class="fsel" id="fSort" onchange="renderHotels()">
+        <option value="price_a">Giá tốt nhất trước</option>
+        <option value="offers_d">Nhiều offer nhất</option>
+        <option value="date_d">Mới nhất</option>
+        <option value="com_d">Com cao nhất</option>
+        <option value="stars_d">Sao nhiều nhất</option>
+      </select>
+      <button class="fbtn" onclick="clearF()">✕</button>
+      <span class="fcount"><b id="rCount">0</b> khách sạn</span>
+    </div>
+
+    <!-- GROUPED VIEW -->
+    <div id="view-group" class="group-list"></div>
+
+    <!-- FLAT VIEW -->
+    <div id="view-flat" style="display:none">
+      <div class="tcard">
+        <div class="tscroll">
+          <table class="flat">
+            <thead><tr>
+              <th>Khách sạn</th><th>Sao</th>
+              <th onclick="setFlatSort('price')">Giá từ ↕</th>
+              <th onclick="setFlatSort('commission_vnd')">Com ↕</th>
+              <th>Ngày trống</th><th>Dịch vụ</th>
+              <th onclick="setFlatSort('sender_name')">Người gửi ↕</th>
+              <th>So sánh</th>
+            </tr></thead>
+            <tbody id="flat-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOCS PAGE -->
+  <div id="p-locs" style="display:none">
+    <div class="ph"><div class="ph-left"><h1>Phân tích <em>địa điểm</em></h1></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+      <div style="background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:18px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);font-weight:600;margin-bottom:14px;font-family:'Geist Mono',monospace">Số KS theo tỉnh</div>
+        <canvas id="cLocBar" height="220"></canvas>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:18px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);font-weight:600;margin-bottom:14px;font-family:'Geist Mono',monospace">Giá TB thấp nhất (vnđ)</div>
+        <canvas id="cLocPrice" height="220"></canvas>
+      </div>
+    </div>
+    <div id="loc-cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
+  </div>
+
+  <!-- SENDERS PAGE -->
+  <div id="p-senders" style="display:none">
+    <div class="ph"><div class="ph-left"><h1>Phân tích <em>người gửi</em></h1></div></div>
+    <div id="send-cards" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px"></div>
+  </div>
+
+  <!-- UNMATCHED PAGE -->
+  <div id="p-unmatched" style="display:none">
+    <div class="ph">
+      <div class="ph-left">
+        <h1>KS <em>chưa khớp</em> DB</h1>
+        <p>Cần review thủ công — thêm vào hotels.csv nếu là 4–5 sao</p>
+      </div>
+    </div>
+    <div class="tcard">
+      <div class="tscroll">
+        <table class="flat">
+          <thead><tr><th>Tên trong tin</th><th>Sao</th><th>Tỉnh</th><th>Giá từ</th><th>Người gửi</th><th>Ngày</th></tr></thead>
+          <tbody id="um-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- COMPARE BAR -->
+<div class="cmp-bar" id="cmp-bar">
+  <div class="cmp-bar-inner">
+    <div class="cmp-header">
+      <span class="cmp-title">So sánh</span>
+      <div class="cmp-slots" id="cmp-slots"></div>
+      <div class="cmp-actions">
+        <button class="cmp-clear" onclick="clearCompare()">Xoá</button>
+        <button class="cmp-go" id="cmp-go" onclick="openCompareModal()" disabled>So sánh ▸</button>
+      </div>
+    </div>
+    <div class="cmp-table-wrap" id="cmp-table-wrap" style="display:none"></div>
+  </div>
+</div>
+
+<!-- HOTEL DETAIL MODAL -->
+<div class="overlay" id="overlay" onclick="onOvClick(event)">
+  <div class="modal" id="modal">
+    <div class="m-head">
+      <div><div class="m-name" id="m-name">—</div><div class="m-loc" id="m-loc">—</div></div>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="m-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// SAMPLE DATA — cùng khách sạn, nhiều người gửi
+// property_id giống nhau = cùng khách sạn trong DB
+// ══════════════════════════════════════════════════════════════════
+const SAMPLE = [
+  // ── Nalod Đà Nẵng — 3 người gửi ──────────────────────────────
+  {hotel_id:"dn_nalod_00",hotel_name:"NALOD",stars:5,location:"Đà Nẵng",location_sub:"Đà Nẵng",
+   checkin_dates:["29/05","05/06","12/06"],checkout_date:"31/05",duration_nights:2,
+   room_types:[{name:"Deluxe City Twin",quantity:10,price_vnd:1900000,price_per:"đêm",includes_breakfast:false}],
+   price_min_vnd:1900000,price_max_vnd:1900000,commission_vnd:null,includes_breakfast:false,
+   extra_services:[],contact_phone:"0389089335",contact_name:"Kiều Oanh",contact_company:"Vintravel",
+   group_id:"g1",sender_id:"u1",sender_name:"Kiều Oanh - Vintravel",msg_sent_at:"2026-04-06T09:04:00Z",
+   matched:true,property_id:"nalod_dn",property_name:"The Nalod Đà Nẵng",match_score:0.53},
+
+  {hotel_id:"dn_nalod_01",hotel_name:"The Nalod Da Nang",stars:5,location:"Đà Nẵng",location_sub:"Đà Nẵng",
+   checkin_dates:["29/05","05/06"],checkout_date:"02/06",duration_nights:3,
+   room_types:[{name:"Deluxe City Twin",quantity:5,price_vnd:1750000,price_per:"đêm",includes_breakfast:true},{name:"Ocean Suite",quantity:2,price_vnd:3200000,price_per:"đêm",includes_breakfast:true}],
+   price_min_vnd:1750000,price_max_vnd:3200000,commission_vnd:120000,includes_breakfast:true,
+   extra_services:["Buffet sáng"],contact_phone:"0912233001",contact_name:"Hà Linh",contact_company:"Sun Travel",
+   group_id:"g2",sender_id:"u2",sender_name:"Hà Linh - Sun Travel",msg_sent_at:"2026-04-06T08:30:00Z",
+   matched:true,property_id:"nalod_dn",property_name:"The Nalod Đà Nẵng",match_score:0.81},
+
+  {hotel_id:"dn_nalod_02",hotel_name:"Nalod Hotel Đà Nẵng",stars:5,location:"Đà Nẵng",location_sub:"Sơn Trà",
+   checkin_dates:["01/06","08/06"],checkout_date:"03/06",duration_nights:2,
+   room_types:[{name:"Superior",quantity:8,price_vnd:1680000,price_per:"đêm",includes_breakfast:false}],
+   price_min_vnd:1680000,price_max_vnd:1680000,commission_vnd:100000,includes_breakfast:false,
+   extra_services:[],contact_phone:"0977665544",contact_name:"Minh Tuấn",contact_company:"Green Pearl",
+   group_id:"g1",sender_id:"u3",sender_name:"Minh Tuấn - Green Pearl",msg_sent_at:"2026-04-05T16:00:00Z",
+   matched:true,property_id:"nalod_dn",property_name:"The Nalod Đà Nẵng",match_score:0.74},
+
+  // ── Furama Đà Nẵng — 2 người gửi ────────────────────────────
+  {hotel_id:"dn_furama_00",hotel_name:"Furama Resort Đà Nẵng",stars:5,location:"Đà Nẵng",location_sub:"Ngũ Hành Sơn",
+   checkin_dates:["30/04","01/05"],checkout_date:"02/05",duration_nights:2,
+   room_types:[{name:"Deluxe Beachfront",quantity:null,price_vnd:4500000,price_per:"2 đêm",includes_breakfast:true},{name:"Pool Villa",quantity:null,price_vnd:7200000,price_per:"2 đêm",includes_breakfast:true}],
+   price_min_vnd:4500000,price_max_vnd:7200000,commission_vnd:350000,includes_breakfast:true,
+   extra_services:["Buffet sáng","Bãi biển riêng","Spa"],contact_phone:"0934455667",contact_name:"Hoa",contact_company:"Premium Travel",
+   group_id:"g2",sender_id:"u4",sender_name:"Đỗ Hoa - Premium Travel",msg_sent_at:"2026-04-05T09:30:00Z",
+   matched:true,property_id:"furama_dn",property_name:"Furama Resort Danang",match_score:0.82},
+
+  {hotel_id:"dn_furama_01",hotel_name:"Furama Đà Nẵng",stars:5,location:"Đà Nẵng",location_sub:"Ngũ Hành Sơn",
+   checkin_dates:["30/04"],checkout_date:"01/05",duration_nights:1,
+   room_types:[{name:"Deluxe Beachfront",quantity:3,price_vnd:4200000,price_per:"đêm",includes_breakfast:true}],
+   price_min_vnd:4200000,price_max_vnd:4200000,commission_vnd:400000,includes_breakfast:true,
+   extra_services:["Buffet sáng","Bãi biển riêng","Spa","Gym"],contact_phone:"0911001122",contact_name:"Thu Nga",contact_company:"VIP Escapes",
+   group_id:"g3",sender_id:"u5",sender_name:"Thu Nga - VIP Escapes",msg_sent_at:"2026-04-06T07:00:00Z",
+   matched:true,property_id:"furama_dn",property_name:"Furama Resort Danang",match_score:0.77},
+
+  // ── Mường Thanh Đà Nẵng — 1 người gửi ──────────────────────
+  {hotel_id:"dn_mt_00",hotel_name:"Mường Thanh Grand Đà Nẵng",stars:4,location:"Đà Nẵng",location_sub:"Đà Nẵng",
+   checkin_dates:["28/04","29/04","30/04"],checkout_date:"01/05",duration_nights:2,
+   room_types:[{name:"Superior",quantity:null,price_vnd:890000,price_per:"đêm",includes_breakfast:true},{name:"Deluxe",quantity:null,price_vnd:1100000,price_per:"đêm",includes_breakfast:true}],
+   price_min_vnd:890000,price_max_vnd:1100000,commission_vnd:100000,includes_breakfast:true,
+   extra_services:["Bữa sáng","Hồ bơi"],contact_phone:"0901234567",contact_name:"Hương",contact_company:"Sunvina Travel",
+   group_id:"g2",sender_id:"u6",sender_name:"Trần Hương - Sunvina Travel",msg_sent_at:"2026-04-05T08:00:00Z",
+   matched:true,property_id:"muongthanh_dn",property_name:"Mường Thanh Grand Đà Nẵng",match_score:0.91},
+
+  // ── Vinpearl Nha Trang — 2 người gửi ────────────────────────
+  {hotel_id:"nt_vp_00",hotel_name:"Vinpearl Resort Nha Trang",stars:5,location:"Khánh Hòa",location_sub:"Nha Trang",
+   checkin_dates:["29/04","30/04","01/05"],checkout_date:"03/05",duration_nights:2,
+   room_types:[{name:"Garden View",quantity:null,price_vnd:3200000,price_per:"2 đêm",includes_breakfast:true},{name:"Ocean View",quantity:null,price_vnd:4100000,price_per:"2 đêm",includes_breakfast:true}],
+   price_min_vnd:3200000,price_max_vnd:4100000,commission_vnd:300000,includes_breakfast:true,
+   extra_services:["Bữa sáng","VinWonders","Bể bơi"],contact_phone:"0911223344",contact_name:"Vân",contact_company:"VinTravel",
+   group_id:"g3",sender_id:"u7",sender_name:"Phạm Vân - VinTravel",msg_sent_at:"2026-04-04T10:00:00Z",
+   matched:true,property_id:"vinpearl_nt",property_name:"Vinpearl Resort Nha Trang",match_score:0.85},
+
+  {hotel_id:"nt_vp_01",hotel_name:"Vinpearl Nha Trang",stars:5,location:"Khánh Hòa",location_sub:"Nha Trang",
+   checkin_dates:["01/05","07/05"],checkout_date:"04/05",duration_nights:3,
+   room_types:[{name:"Garden View",quantity:4,price_vnd:3400000,price_per:"2 đêm",includes_breakfast:true},{name:"Ocean View",quantity:2,price_vnd:4500000,price_per:"2 đêm",includes_breakfast:true}],
+   price_min_vnd:3400000,price_max_vnd:4500000,commission_vnd:280000,includes_breakfast:true,
+   extra_services:["Bữa sáng","Bể bơi"],contact_phone:"0923456789",contact_name:"Bình",contact_company:"Ngọc Dương Travel",
+   group_id:"g1",sender_id:"u8",sender_name:"Anh Bình - Ngọc Dương Travel",msg_sent_at:"2026-04-05T14:00:00Z",
+   matched:true,property_id:"vinpearl_nt",property_name:"Vinpearl Resort Nha Trang",match_score:0.79},
+
+  // ── Marina Hạ Long — 1 người gửi ────────────────────────────
+  {hotel_id:"hl_marina_00",hotel_name:"Marina Hạ Long",stars:4,location:"Quảng Ninh",location_sub:"Hạ Long",
+   checkin_dates:["30/04","01/05","02/05"],checkout_date:"03/05",duration_nights:3,
+   room_types:[{name:"Deluxe King",quantity:5,price_vnd:1750000,price_per:"đêm",includes_breakfast:true},{name:"Deluxe Twin",quantity:5,price_vnd:1750000,price_per:"đêm",includes_breakfast:true}],
+   price_min_vnd:1750000,price_max_vnd:1750000,commission_vnd:150000,includes_breakfast:true,
+   extra_services:["Ăn 2 bữa"],contact_phone:"0339040428",contact_name:"Anh Bình",contact_company:"Ngọc Dương Travel",
+   group_id:"g1",sender_id:"u8",sender_name:"Anh Bình - Ngọc Dương Travel",msg_sent_at:"2026-04-06T04:17:00Z",
+   matched:true,property_id:"marina_hl",property_name:"Marina Halong Hotel",match_score:0.78},
+
+  // ── Peace Hạ Long — chưa khớp DB ────────────────────────────
+  {hotel_id:"hl_peace_00",hotel_name:"Peace Hạ Long",stars:4,location:"Quảng Ninh",location_sub:"Hạ Long",
+   checkin_dates:["30/04"],checkout_date:"02/05",duration_nights:2,
+   room_types:[{name:"Standard",quantity:null,price_vnd:1700000,price_per:"đêm",includes_breakfast:null}],
+   price_min_vnd:1700000,price_max_vnd:1700000,commission_vnd:120000,includes_breakfast:null,
+   extra_services:[],contact_phone:"0339040428",contact_name:"Anh Bình",contact_company:"Ngọc Dương Travel",
+   group_id:"g1",sender_id:"u8",sender_name:"Anh Bình - Ngọc Dương Travel",msg_sent_at:"2026-04-06T04:17:00Z",
+   matched:false,property_id:null,property_name:null,match_score:null},
+];
+
+// ══════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════
+let DATA        = [...SAMPLE];
+let VIEW        = 'group';    // 'group' | 'flat'
+let flatSortCol = null, flatSortDir = 1;
+let cmpItems    = [];         // [{groupKey, groupData}] max 3
+let cmpExpanded = false;
+let charts      = {};
+
+// ══════════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════════
+const fmt  = n => n ? Number(n).toLocaleString('vi-VN') : '—';
+const fmtK = n => {
+  if (!n) return '—';
+  if (n >= 1e6) return (n/1e6).toFixed(1).replace('.0','')+'tr';
+  if (n >= 1e3) return Math.round(n/1e3)+'k';
+  return String(n);
+};
+const ts2ms = h => {
+  if (h.ts_ms) return h.ts_ms;
+  if (h.msg_sent_at) return new Date(h.msg_sent_at).getTime();
+  return 0;
+};
+const getMin = h => {
+  if (h.price_min_vnd) return h.price_min_vnd;
+  const ps = (h.room_types||[]).map(r=>r.price_vnd).filter(p=>p>0);
+  if (ps.length) return Math.min(...ps);
+  const ops = (h.prices||[]).map(p=>Number(p.price_vnd)).filter(p=>p>0);
+  return ops.length ? Math.min(...ops) : null;
+};
+const getContact = h => [h.contact_name, h.contact_phone].filter(Boolean).join(' ') || h.contact || '—';
+
+function toast(msg, dur=2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// GROUP BY PROPERTY
+// key = property_id if matched, else hotel_name normalized
+// ══════════════════════════════════════════════════════════════════
+function groupKey(h) {
+  if (h.matched && h.property_id) return 'prop_' + h.property_id;
+  return 'raw_' + (h.hotel_name||'').toLowerCase().replace(/\s+/g,'_');
+}
+
+function buildGroups(records) {
+  const map = new Map();
+  for (const h of records) {
+    const k = groupKey(h);
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(h);
+  }
+  // Sort offers within each group: cheapest first
+  for (const [, arr] of map) arr.sort((a,b) => (getMin(a)||9e9) - (getMin(b)||9e9));
+  return map;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FILE LOAD
+// ══════════════════════════════════════════════════════════════════
+function onFileLoad(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    const lines  = ev.target.result.split('\n').filter(l => l.trim());
+    const parsed = lines.map(l => { try { return JSON.parse(l); } catch { return null; }}).filter(Boolean);
+    if (!parsed.length) { toast('❌ File không hợp lệ'); return; }
+    DATA = parsed;
+    document.getElementById('file-status').textContent = `✓ ${parsed.length} records`;
+    toast(`✅ Loaded ${parsed.length} records`);
+    refreshAll();
+  };
+  r.readAsText(f);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PAGES
+// ══════════════════════════════════════════════════════════════════
+function gotoPage(name) {
+  ['hotels','locs','senders','unmatched'].forEach(p =>
+    document.getElementById('p-'+p).style.display = p === name ? 'block' : 'none');
+  document.querySelectorAll('.s-item').forEach((el,i) =>
+    el.classList.toggle('active', ['hotels','locs','senders','unmatched'][i] === name));
+  if (name === 'hotels')   renderHotels();
+  if (name === 'locs')     renderLocs();
+  if (name === 'senders')  renderSenders();
+  if (name === 'unmatched') renderUnmatched();
+}
+
+function setView(v) {
+  VIEW = v;
+  document.getElementById('vbtn-group').classList.toggle('active', v==='group');
+  document.getElementById('vbtn-flat').classList.toggle('active', v==='flat');
+  document.getElementById('view-group').style.display = v==='group' ? 'flex' : 'none';
+  document.getElementById('view-flat').style.display  = v==='flat'  ? 'block' : 'none';
+  renderHotels();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// REFRESH ALL
+// ══════════════════════════════════════════════════════════════════
+function refreshAll() {
+  updateKPIs();
+  populateLocFilter();
+  renderHotels();
+  document.getElementById('sn-hotels').textContent = DATA.length;
+  document.getElementById('sn-um').textContent = DATA.filter(h=>!h.matched).length;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// KPIs
+// ══════════════════════════════════════════════════════════════════
+function updateKPIs() {
+  const groups = buildGroups(DATA);
+  const mins   = DATA.map(getMin).filter(Boolean);
+  const coms   = DATA.map(h=>Number(h.commission_vnd)).filter(v=>v>0);
+  const senders= [...new Set(DATA.map(h=>h.sender_id||h.sender_name).filter(Boolean))];
+  const avg    = arr => arr.length ? Math.round(arr.reduce((a,b)=>a+b)/arr.length) : 0;
+
+  document.getElementById('k-props').textContent   = groups.size;
+  document.getElementById('k-props-s').textContent = `${DATA.filter(h=>h.matched).length} khớp DB`;
+  document.getElementById('k-offers').textContent  = DATA.length;
+  document.getElementById('k-offers-s').textContent= `từ ${senders.length} người gửi`;
+
+  const globalMin = mins.length ? Math.min(...mins) : null;
+  document.getElementById('k-best').textContent    = globalMin ? fmtK(globalMin) : '—';
+  document.getElementById('k-best-s').textContent  = 'giá thấp nhất toàn bộ';
+  document.getElementById('k-com').textContent     = fmtK(avg(coms));
+  document.getElementById('k-com-s').textContent   = `${coms.length} offer có com`;
+  document.getElementById('k-send').textContent    = senders.length;
+  document.getElementById('k-send-s').textContent  = [...new Set(DATA.map(h=>h.contact_company).filter(Boolean))].length + ' công ty';
+
+  document.getElementById('ph-badge').textContent = DATA.length + ' deals';
+  const dates = DATA.map(ts2ms).filter(Boolean);
+  if (dates.length) {
+    const last = new Date(Math.max(...dates));
+    document.getElementById('last-update').textContent = 'cập nhật ' + last.toLocaleString('vi-VN');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FILTERS & SORT
+// ══════════════════════════════════════════════════════════════════
+function populateLocFilter() {
+  const locs = [...new Set(DATA.map(h=>h.location).filter(Boolean))].sort();
+  const sel = document.getElementById('fLoc'), cur = sel.value;
+  sel.innerHTML = '<option value="">Tất cả tỉnh</option>' +
+    locs.map(l=>`<option value="${l}"${l===cur?' selected':''}>${l}</option>`).join('');
+}
+
+function clearF() {
+  ['q','fLoc','fStars','fPrice'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fSort').value='price_a';
+  renderHotels();
+}
+
+function getFiltered() {
+  const q    = (document.getElementById('q').value||'').toLowerCase();
+  const loc  = document.getElementById('fLoc').value;
+  const str  = document.getElementById('fStars').value;
+  const pr   = document.getElementById('fPrice').value;
+
+  return DATA.filter(h => {
+    if (q) {
+      const hay = [h.hotel_name,h.location,h.location_sub,h.property_name,
+        h.contact_phone,h.contact_name,h.contact_company,h.sender_name]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (loc && h.location !== loc) return false;
+    if (str !== '') {
+      if (str==='0') { if(h.stars) return false; }
+      else if (Number(h.stars) !== Number(str)) return false;
+    }
+    if (pr) {
+      const [mn,mx] = pr.split('-').map(Number);
+      const p = getMin(h); if(!p||p<mn||p>=mx) return false;
+    }
+    return true;
+  });
+}
+
+function sortGroups(groups) {
+  const sv = document.getElementById('fSort').value;
+  return [...groups.entries()].sort((a,b) => {
+    const ao = a[1], bo = b[1];
+    if (sv==='price_a') return (getMin(ao[0])||9e9)-(getMin(bo[0])||9e9);
+    if (sv==='offers_d') return bo.length-ao.length;
+    if (sv==='date_d')  return Math.max(...bo.map(ts2ms)) - Math.max(...ao.map(ts2ms));
+    if (sv==='com_d')   return (Math.max(...bo.map(h=>h.commission_vnd||0)))-(Math.max(...ao.map(h=>h.commission_vnd||0)));
+    if (sv==='stars_d') return (ao[0].stars||0)-(bo[0].stars||0) < 0 ? 1:-1;
+    return 0;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER HOTELS
+// ══════════════════════════════════════════════════════════════════
+function renderHotels() {
+  const filtered = getFiltered();
+  const groups   = buildGroups(filtered);
+  const sorted   = sortGroups(groups);
+
+  document.getElementById('rCount').textContent = groups.size;
+
+  if (VIEW === 'group') renderGrouped(sorted);
+  else                  renderFlat(filtered);
+}
+
+// ── GROUPED VIEW ──────────────────────────────────────────────────
+function renderGrouped(sorted) {
+  const el = document.getElementById('view-group');
+  if (!sorted.length) {
+    el.innerHTML = `<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:28px;margin-bottom:10px;opacity:.3">⌖</div>Không tìm thấy kết quả</div>`;
+    return;
+  }
+  el.innerHTML = sorted.map(([key, offers]) => buildGroupCard(key, offers)).join('');
+}
+
+function buildGroupCard(key, offers) {
+  const rep     = offers[0];                       // representative (cheapest)
+  const best    = getMin(rep);
+  const worst   = getMin(offers[offers.length-1]);
+  const cmpSel  = cmpItems.some(c=>c.key===key);
+  const multi   = offers.length > 1;
+  const allComs = offers.map(h=>h.commission_vnd).filter(Boolean);
+  const maxCom  = allComs.length ? Math.max(...allComs) : null;
+  const starStr = rep.stars ? `<span class="star-b">★ ${rep.stars}</span>` : '';
+  const locStr  = (rep.location_sub && rep.location_sub !== rep.location)
+    ? `${rep.location_sub}, ${rep.location}` : (rep.location||'—');
+  const priceRangeStr = (multi && worst && worst !== best)
+    ? `<div class="price-range"><div class="price-range-val">${fmtK(best)}–${fmtK(worst)}</div><div style="font-size:10px;color:var(--muted);margin-top:1px">giá trải từ</div></div>`
+    : '';
+  const deltaStr = (multi && worst && worst !== best && best)
+    ? `<span class="delta-badge up">+${Math.round((worst-best)/best*100)}% spread</span>`
+    : (multi ? `<span class="delta-badge eq">đồng giá</span>` : '');
+
+  return `
+<div class="group-card" id="gc-${key}" style="animation-delay:0s">
+  <div class="group-head" onclick="toggleGroup('${key}')">
+    <div class="gh-name">
+      <div class="gh-title">${rep.property_name || rep.hotel_name}</div>
+      <div class="gh-loc">📍 ${locStr}</div>
+      ${rep.matched ? `<div class="gh-prop">↳ ${rep.property_name} · score ${Math.round((rep.match_score||0)*100)}%</div>` : `<div style="font-size:10px;color:#f87171;margin-top:2px">✗ chưa khớp DB</div>`}
+    </div>
+    ${starStr}
+    <div class="${multi?'offers-badge multi':'offers-badge'}">${offers.length} offer${multi?'s':''}</div>
+    <div class="price-best">
+      <div class="price-best-val">từ ${fmtK(best)}đ</div>
+      <div class="price-best-lbl">${multi?'giá tốt nhất':'giá niêm yết'}</div>
+    </div>
+    ${priceRangeStr || '<div></div>'}
+    ${deltaStr || '<div></div>'}
+    <div style="display:flex;align-items:center;gap:6px">
+      <button class="cmp-btn ${cmpSel?'selected':''}" onclick="toggleCompare(event,'${key}')"
+        title="${cmpSel?'Bỏ chọn':'Thêm vào so sánh'}">${cmpSel?'✓ Đang so sánh':'+ So sánh'}</button>
+      <span class="expand-ico">▾</span>
+    </div>
+  </div>
+  <div class="offers-wrap">
+    <table class="offers-table">
+      <thead><tr>
+        <th>Người gửi</th><th>Nhóm</th>
+        <th>Loại phòng · Giá</th>
+        <th>Com</th><th>Bữa sáng</th>
+        <th>Ngày trống</th><th>Liên hệ</th>
+      </tr></thead>
+      <tbody>
+        ${offers.map((h,i) => buildOfferRow(h, i===0 && multi, best, offers.length)).join('')}
+      </tbody>
+    </table>
+  </div>
+</div>`;
+}
+
+function buildOfferRow(h, isBest, bestPrice, totalOffers) {
+  const p     = getMin(h);
+  const diff  = (p && bestPrice && p > bestPrice) ? Math.round((p-bestPrice)/bestPrice*100) : 0;
+  const dates = (h.checkin_dates||[]).slice(0,4).map(d=>`<span class="date-chip">${d}</span>`).join('')
+              + ((h.checkin_dates||[]).length>4?`<span class="date-chip">+${h.checkin_dates.length-4}</span>`:'');
+  const rooms = (h.room_types||[]).map(rt =>
+    `<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:3px">
+      <span style="font-size:11.5px;color:var(--muted)">${rt.name}</span>
+      <span class="offer-price ${isBest&&totalOffers>1?'best':''}">${fmtK(rt.price_vnd)}đ</span>
+      <span style="font-size:10px;color:var(--muted2)">/${rt.price_per||'đêm'}</span>
+      ${rt.quantity?`<span style="font-size:10px;color:var(--muted2)">(${rt.quantity} p)</span>`:''}
+    </div>`
+  ).join('');
+  const bfast = h.includes_breakfast===true ? `<span class="bfast-y">✓ có</span>` : h.includes_breakfast===false ? `<span class="bfast-n">✗ không</span>` : `<span class="bfast-n">—</span>`;
+
+  return `<tr class="${isBest&&totalOffers>1?'best-offer':''}">
+    <td>
+      <div class="sender-name">${h.sender_name||'—'}${isBest&&totalOffers>1?'<span class="winner-chip">BEST PRICE</span>':''}</div>
+      <div class="sender-co">${h.contact_company||''}</div>
+    </td>
+    <td style="font-size:11.5px;color:var(--muted)">${h.group_name||h.group_id||'—'}</td>
+    <td>
+      ${rooms||'—'}
+      ${diff>0?`<div class="offer-delta worse">+${diff}% vs giá tốt nhất</div>`:''}
+      ${isBest&&totalOffers>1?`<div class="offer-delta best">▲ giá tốt nhất</div>`:''}
+    </td>
+    <td>${h.commission_vnd?`<span class="com-tag">+${fmtK(h.commission_vnd)}</span>`:'<span style="color:var(--muted2)">—</span>'}</td>
+    <td>${bfast}</td>
+    <td style="white-space:nowrap">${dates||'—'}</td>
+    <td><div class="contact-val">${getContact(h)}</div></td>
+  </tr>`;
+}
+
+function toggleGroup(key) {
+  const card = document.getElementById('gc-'+key);
+  if (!card) return;
+  card.classList.toggle('expanded');
+}
+
+// ── FLAT VIEW ─────────────────────────────────────────────────────
+function renderFlat(records) {
+  // Sort flat
+  const sv = document.getElementById('fSort').value;
+  const cp = [...records];
+  if      (sv==='price_a') cp.sort((a,b)=>(getMin(a)||9e9)-(getMin(b)||9e9));
+  else if (sv==='date_d')  cp.sort((a,b)=>ts2ms(b)-ts2ms(a));
+  else if (sv==='com_d')   cp.sort((a,b)=>(b.commission_vnd||0)-(a.commission_vnd||0));
+  else if (sv==='stars_d') cp.sort((a,b)=>(b.stars||0)-(a.stars||0));
+
+  const tbody = document.getElementById('flat-tbody');
+  if (!cp.length) { tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">Không có kết quả</td></tr>`; return; }
+
+  tbody.innerHTML = cp.map((h,i) => {
+    const p = getMin(h);
+    const dates = (h.checkin_dates||[]).slice(0,3).map(d=>`<span class="date-chip">${d}</span>`).join('')+((h.checkin_dates||[]).length>3?'…':'');
+    const svcs = (h.extra_services||[]).slice(0,2).join(', ')+(h.extra_services&&h.extra_services.length>2?'…':'');
+    const key = groupKey(h), cmpSel = cmpItems.some(c=>c.key===key);
+    return `<tr onclick="openFlatModal(${i})">
+      <td>
+        <div class="t-hotel">${h.hotel_name||'—'}</div>
+        <div class="t-loc">📍 ${h.location_sub||h.location||'—'}</div>
+        ${h.property_name?`<div class="t-prop">↳ ${h.property_name}</div>`:''}
+      </td>
+      <td>${h.stars?`<span class="star-b">★ ${h.stars}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td style="font-family:'Geist Mono',monospace;font-weight:600">${p?fmtK(p)+'đ':'—'}</td>
+      <td>${h.commission_vnd?`<span class="com-tag">+${fmtK(h.commission_vnd)}</span>`:'—'}</td>
+      <td>${dates||'—'}</td>
+      <td style="font-size:11.5px;color:var(--muted)">${svcs||'—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${(h.sender_name||'—').split(' ').slice(0,3).join(' ')}</td>
+      <td><button class="cmp-btn ${cmpSel?'selected':''}" onclick="event.stopPropagation();toggleCompare(event,'${key}')">${cmpSel?'✓':'+ So sánh'}</button></td>
+    </tr>`;
+  }).join('');
+  window._flatData = cp;
+}
+
+let flatData = [];
+function openFlatModal(i) {
+  const h = (window._flatData||[])[i]; if (!h) return;
+  openDetailModal(h);
+}
+function setFlatSort(col) { document.getElementById('fSort').value='date_d'; renderHotels(); }
+
+// ══════════════════════════════════════════════════════════════════
+// DETAIL MODAL
+// ══════════════════════════════════════════════════════════════════
+function openDetailModal(h) {
+  document.getElementById('m-name').textContent = h.property_name||h.hotel_name||'—';
+  document.getElementById('m-loc').textContent  = `📍 ${h.location_sub||h.location||'—'}${h.stars?' · '+'★'.repeat(h.stars):''}`;
+  const rooms = (h.room_types||[]).map(rt=>
+    `<tr><td>${rt.name}</td><td style="color:var(--muted2)">${rt.quantity??'—'}</td>
+     <td style="font-family:'Geist Mono',monospace;font-weight:600;color:var(--gold)">${fmtK(rt.price_vnd)}đ</td>
+     <td style="color:var(--muted)">${rt.price_per||''}</td>
+     <td>${rt.includes_breakfast===true?'✓':rt.includes_breakfast===false?'✗':'—'}</td></tr>`
+  ).join('');
+  const dates = (h.checkin_dates||[]).map(d=>`<span class="date-chip">${d}</span>`).join('');
+  const svcs  = (h.extra_services||[]).map(s=>`<span style="display:inline-block;background:rgba(31,206,195,.08);color:var(--teal);border-radius:4px;padding:2px 8px;font-size:11.5px;margin:2px">✓ ${s}</span>`).join('');
+  document.getElementById('m-body').innerHTML = `
+    <div class="m-grid" style="margin-bottom:16px">
+      <div class="mf"><div class="mf-l">Người gửi</div><div class="mf-v">${h.sender_name||'—'}</div></div>
+      <div class="mf"><div class="mf-l">Công ty</div><div class="mf-v">${h.contact_company||'—'}</div></div>
+      <div class="mf"><div class="mf-l">Liên hệ</div><div class="mf-v">☎ ${getContact(h)}</div></div>
+      <div class="mf"><div class="mf-l">Com</div><div class="mf-v" style="color:var(--teal)">${h.commission_vnd?fmt(h.commission_vnd)+'đ':'—'}</div></div>
+    </div>
+    ${rooms?`<div style="margin-bottom:16px"><div class="m-sec-title">Loại phòng & Giá</div>
+    <div style="background:var(--bg3);border-radius:8px;overflow:hidden;border:1px solid var(--line)">
+    <table style="width:100%;border-collapse:collapse">
+    <thead style="background:var(--bg4)"><tr>
+      <th style="padding:8px 11px;font-size:10px;text-align:left;color:var(--muted);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:1px">Loại</th>
+      <th style="padding:8px 11px;font-size:10px;text-align:left;color:var(--muted);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:1px">SL</th>
+      <th style="padding:8px 11px;font-size:10px;text-align:left;color:var(--muted);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:1px">Giá</th>
+      <th style="padding:8px 11px;font-size:10px;text-align:left;color:var(--muted);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:1px">Tính theo</th>
+      <th style="padding:8px 11px;font-size:10px;text-align:left;color:var(--muted);font-family:'Geist Mono',monospace;text-transform:uppercase;letter-spacing:1px">Sáng</th>
+    </tr></thead>
+    <tbody style="font-size:12.5px">${rooms}</tbody></table></div></div>`:''}
+    ${dates?`<div style="margin-bottom:12px"><div class="m-sec-title">Ngày còn phòng</div>${dates}${h.checkout_date?`<span class="date-chip">→ out ${h.checkout_date}</span>`:''}</div>`:''}
+    ${svcs?`<div><div class="m-sec-title">Dịch vụ</div>${svcs}</div>`:''}`;
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function onOvClick(e) { if(e.target===document.getElementById('overlay')) closeModal(); }
+
+// ══════════════════════════════════════════════════════════════════
+// COMPARE ENGINE
+// ══════════════════════════════════════════════════════════════════
+const MAX_CMP = 3;
+
+function toggleCompare(e, key) {
+  e.stopPropagation();
+  const existing = cmpItems.findIndex(c=>c.key===key);
+  if (existing >= 0) {
+    cmpItems.splice(existing, 1);
+    toast('Đã bỏ khỏi so sánh');
+  } else {
+    if (cmpItems.length >= MAX_CMP) { toast(`Tối đa ${MAX_CMP} khách sạn`); return; }
+    const filtered = getFiltered();
+    const groups   = buildGroups(filtered);
+    const offers   = groups.get(key) || DATA.filter(h=>groupKey(h)===key);
+    if (!offers.length) return;
+    cmpItems.push({ key, offers, name: offers[0].property_name||offers[0].hotel_name });
+    toast('Đã thêm vào so sánh');
+  }
+  updateCmpBar();
+  renderHotels();   // re-render buttons
+}
+
+function updateCmpBar() {
+  const bar     = document.getElementById('cmp-bar');
+  const goBtn   = document.getElementById('cmp-go');
+  const slotsEl = document.getElementById('cmp-slots');
+  const tableEl = document.getElementById('cmp-table-wrap');
+
+  if (cmpItems.length === 0) {
+    bar.classList.remove('open');
+    cmpExpanded = false;
+    return;
+  }
+  bar.classList.add('open');
+  goBtn.disabled = cmpItems.length < 2;
+
+  slotsEl.innerHTML = cmpItems.map(c=>
+    `<div class="cmp-slot">
+      <span class="cmp-slot-name" title="${c.name}">${c.name}</span>
+      <button class="cmp-slot-rm" onclick="toggleCompare(event,'${c.key}')">✕</button>
+    </div>`
+  ).join('') + (cmpItems.length < MAX_CMP ? `<div class="cmp-slot empty">+ thêm KS</div>` : '');
+
+  // Auto-expand table if 2+
+  if (cmpItems.length >= 2) {
+    tableEl.style.display = 'block';
+    renderCompareTable();
+  } else {
+    tableEl.style.display = 'none';
+  }
+}
+
+function openCompareModal() {
+  // Scroll to table, already shown
+  document.getElementById('cmp-table-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function clearCompare() {
+  cmpItems = [];
+  updateCmpBar();
+  renderHotels();
+}
+
+function renderCompareTable() {
+  if (cmpItems.length < 2) return;
+  const cols = cmpItems;
+
+  // Collect all room type names across all KS
+  const allRoomTypes = [...new Set(cols.flatMap(c =>
+    c.offers.flatMap(o => (o.room_types||[]).map(r=>r.name))
+  ))];
+
+  // Find best price per column (cheapest offer)
+  const colBestPrice = cols.map(c => {
+    const mins = c.offers.map(getMin).filter(Boolean);
+    return mins.length ? Math.min(...mins) : null;
+  });
+  const globalBest = Math.min(...colBestPrice.filter(Boolean));
+
+  // Find max com
+  const colMaxCom = cols.map(c => {
+    const coms = c.offers.map(h=>h.commission_vnd||0);
+    return Math.max(...coms);
+  });
+  const globalMaxCom = Math.max(...colMaxCom);
+
+  // Header row
+  const header = `<tr>
+    <td class="row-label" style="border-bottom:1px solid var(--line);background:var(--bg3)"></td>
+    ${cols.map(c => `<td class="cmp-col" style="border-bottom:1px solid var(--line)">
+      <div class="cmp-hotel-name">${c.name}</div>
+      <div class="cmp-hotel-loc">${c.offers[0]?.location||'—'} ${c.offers[0]?.stars?'· ★'.repeat(c.offers[0].stars):''}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;font-family:'Geist Mono',monospace">${c.offers.length} offer${c.offers.length>1?'s':''}</div>
+    </td>`).join('')}
+  </tr>`;
+
+  // Giá tốt nhất
+  const priceRow = `<tr class="winner-row">
+    <td class="row-label">Giá tốt nhất</td>
+    ${colBestPrice.map((p,i) => {
+      const isBest = p === globalBest;
+      const diff   = (p && globalBest) ? Math.round((p-globalBest)/globalBest*100) : 0;
+      return `<td class="cmp-col ${isBest?'winner':p&&p>globalBest?'loser':''}">
+        <div class="cmp-price-val ${isBest?'best':p&&p>globalBest?'worst':''}">${fmtK(p)}đ</div>
+        ${isBest?`<div class="cmp-diff best">▲ tốt nhất</div>`:diff>0?`<div class="cmp-diff up">+${diff}% đắt hơn</div>`:''}
+      </td>`;
+    }).join('')}
+  </tr>`;
+
+  // Giá range
+  const rangeRow = `<tr>
+    <td class="row-label">Dải giá</td>
+    ${cols.map(c => {
+      const mins = c.offers.map(getMin).filter(Boolean);
+      const maxs = c.offers.map(h=>h.price_max_vnd).filter(Boolean);
+      const lo = mins.length ? Math.min(...mins) : null;
+      const hi = maxs.length ? Math.max(...maxs) : null;
+      return `<td class="cmp-col"><span style="font-family:'Geist Mono',monospace;font-size:12px">${fmtK(lo)} – ${fmtK(hi)}đ</span></td>`;
+    }).join('')}
+  </tr>`;
+
+  // Com
+  const comRow = `<tr class="winner-row">
+    <td class="row-label">Com cao nhất</td>
+    ${colMaxCom.map((c,i) => {
+      const isBest = c === globalMaxCom && c > 0;
+      return `<td class="cmp-col ${isBest?'winner':''}">
+        ${c>0?`<span class="com-tag" style="${isBest?'background:rgba(34,197,94,.1);color:var(--green)':''}">${isBest?'▲ ':'+'}${fmtK(c)}đ</span>`:'<span style="color:var(--muted2)">—</span>'}
+      </td>`;
+    }).join('')}
+  </tr>`;
+
+  // Số offers
+  const offersRow = `<tr>
+    <td class="row-label">Số offer</td>
+    ${cols.map(c => `<td class="cmp-col">
+      <span style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600">${c.offers.length}</span>
+      <span style="font-size:11px;color:var(--muted);margin-left:4px">người gửi</span>
+    </td>`).join('')}
+  </tr>`;
+
+  // Bữa sáng
+  const bfastRow = `<tr>
+    <td class="row-label">Bữa sáng</td>
+    ${cols.map(c => {
+      const has = c.offers.some(h=>h.includes_breakfast===true);
+      const none= c.offers.every(h=>h.includes_breakfast===false);
+      return `<td class="cmp-col">${has?`<span class="bfast-y">✓ có (một số offer)</span>`:none?`<span class="bfast-n">✗ không</span>`:`<span style="color:var(--muted)">—</span>`}</td>`;
+    }).join('')}
+  </tr>`;
+
+  // Ngày trống
+  const datesRow = `<tr>
+    <td class="row-label">Ngày trống</td>
+    ${cols.map(c => {
+      const allDates = [...new Set(c.offers.flatMap(h=>h.checkin_dates||[]))].slice(0,5);
+      return `<td class="cmp-col">${allDates.map(d=>`<span class="date-chip">${d}</span>`).join('')||'—'}</td>`;
+    }).join('')}
+  </tr>`;
+
+  // Dịch vụ
+  const svcsRow = `<tr>
+    <td class="row-label">Dịch vụ</td>
+    ${cols.map(c => {
+      const svcs = [...new Set(c.offers.flatMap(h=>h.extra_services||[]))].slice(0,4);
+      return `<td class="cmp-col" style="font-size:11.5px;color:var(--muted)">${svcs.join(' · ')||'—'}</td>`;
+    }).join('')}
+  </tr>`;
+
+  // Liên hệ tốt nhất (offer giá tốt nhất)
+  const contactRow = `<tr>
+    <td class="row-label">Liên hệ tốt nhất</td>
+    ${cols.map((c,i) => {
+      const best = c.offers[0]; // sorted cheapest first
+      return `<td class="cmp-col">
+        <div style="font-size:12px;font-weight:500">${best.sender_name||'—'}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:'Geist Mono',monospace">${getContact(best)}</div>
+      </td>`;
+    }).join('')}
+  </tr>`;
+
+  // Kết luận
+  const verdictRow = `<tr style="background:rgba(200,168,75,.03)">
+    <td class="row-label" style="color:var(--gold)">Kết luận</td>
+    ${cols.map((c,i) => {
+      const p = colBestPrice[i], com = colMaxCom[i];
+      const isCheapest = p === globalBest;
+      const hasBestCom = com === globalMaxCom && com > 0;
+      const notes = [];
+      if (isCheapest) notes.push('💰 Giá tốt nhất');
+      if (hasBestCom) notes.push('💵 Com cao nhất');
+      if (c.offers.length > 1) notes.push(`👥 ${c.offers.length} nguồn`);
+      return `<td class="cmp-col" style="font-size:12px;font-weight:500;color:var(--text)">
+        ${notes.length ? notes.join('<br>') : '<span style="color:var(--muted)">—</span>'}
+      </td>`;
+    }).join('')}
+  </tr>`;
+
+  document.getElementById('cmp-table-wrap').innerHTML = `
+    <table class="cmp-table" style="min-width:${200 + cols.length*220}px">
+      <colgroup><col style="width:130px">${cols.map(()=>'<col style="min-width:200px">').join('')}</colgroup>
+      <tbody>${header}${priceRow}${rangeRow}${comRow}${offersRow}${bfastRow}${datesRow}${svcsRow}${contactRow}${verdictRow}</tbody>
+    </table>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// LOCATIONS + SENDERS + UNMATCHED
+// ══════════════════════════════════════════════════════════════════
+const GOLD='#c8a84b',TEAL='#1fcec3',GREEN='#22c55e',RED='#ef4444',IND='#7c6fe0',AMB='#f59e0b';
+const PAL=[GOLD,TEAL,GREEN,IND,AMB,RED,'#60a5fa','#f472b6','#a3e635'];
+let chts={};
+function dc(id){if(chts[id]){chts[id].destroy();delete chts[id];}}
+
+function renderLocs() {
+  const lm={};
+  DATA.forEach(h=>{const l=h.location||'Khác';if(!lm[l])lm[l]={n:0,prices:[],coms:[]};
+    lm[l].n++;const p=getMin(h);if(p)lm[l].prices.push(p);if(h.commission_vnd)lm[l].coms.push(h.commission_vnd);});
+  const sorted=Object.entries(lm).sort((a,b)=>b[1].n-a[1].n);
+  const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b)/arr.length):0;
+  dc('locBar');
+  chts['locBar']=new Chart(document.getElementById('cLocBar'),{type:'bar',
+    data:{labels:sorted.map(x=>x[0]),datasets:[{data:sorted.map(x=>x[1].n),backgroundColor:PAL,borderRadius:5,borderSkipped:false}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5e7899',font:{size:11}},grid:{display:false}},y:{ticks:{color:'#5e7899'},grid:{color:'rgba(255,255,255,.04)'}}},responsive:true}});
+  dc('locPrice');
+  chts['locPrice']=new Chart(document.getElementById('cLocPrice'),{type:'bar',
+    data:{labels:sorted.map(x=>x[0]),datasets:[{data:sorted.map(x=>avg(x[1].prices)),backgroundColor:TEAL,borderRadius:5,borderSkipped:false}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5e7899',font:{size:11}},grid:{display:false}},y:{ticks:{color:'#5e7899',callback:v=>fmtK(v)},grid:{color:'rgba(255,255,255,.04)'}}},responsive:true}});
+  document.getElementById('loc-cards').innerHTML=sorted.map(([loc,d])=>{
+    const avgP=avg(d.prices),avgCom=avg(d.coms);
+    return `<div style="background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:16px;cursor:pointer;transition:border-color .15s"
+      onmouseover="this.style.borderColor='var(--line2)'" onmouseout="this.style.borderColor='var(--line)'"
+      onclick="document.getElementById('fLoc').value='${loc}';gotoPage('hotels')">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-family:'Instrument Serif',serif;font-size:15px">📍 ${loc}</span>
+        <span style="background:var(--gold-d);color:var(--gold);border-radius:4px;padding:2px 8px;font-size:11px;font-family:'Geist Mono',monospace;font-weight:600">${d.n}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:var(--bg3);border-radius:7px;padding:9px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'Geist Mono',monospace">Giá TB</div>
+          <div style="font-weight:600;color:var(--teal);font-family:'Geist Mono',monospace">${fmtK(avgP)}đ</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:7px;padding:9px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'Geist Mono',monospace">Com TB</div>
+          <div style="font-weight:600;color:var(--gold);font-family:'Geist Mono',monospace">${fmtK(avgCom)||'—'}${avgCom?'đ':''}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSenders() {
+  const sm={};
+  DATA.forEach(h=>{const s=h.sender_name||'?';
+    if(!sm[s])sm[s]={n:0,locs:new Set(),coms:[],co:h.contact_company||null};
+    sm[s].n++;if(h.location)sm[s].locs.add(h.location);if(h.commission_vnd)sm[s].coms.push(h.commission_vnd);
+    if(!sm[s].co&&h.contact_company)sm[s].co=h.contact_company;});
+  const sorted=Object.entries(sm).sort((a,b)=>b[1].n-a[1].n);
+  const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b)/arr.length):0;
+  document.getElementById('send-cards').innerHTML=sorted.map(([name,d],i)=>{
+    const pct=Math.round(d.n/DATA.length*100),avgCom=avg(d.coms),c=PAL[i%PAL.length];
+    return `<div style="background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:${c}18;border:1.5px solid ${c};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">◉</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+          ${d.co?`<div style="font-size:11px;color:var(--muted);margin-top:1px">${d.co}</div>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:'Instrument Serif',serif;font-size:22px;color:${c}">${d.n}</div>
+          <div style="font-size:10px;color:var(--muted)">offers</div>
+        </div>
+      </div>
+      <div style="background:var(--bg4);border-radius:3px;height:3px;overflow:hidden;margin-bottom:12px">
+        <div style="height:100%;width:${pct}%;background:${c};border-radius:3px;transition:width .6s"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:var(--bg3);border-radius:7px;padding:9px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'Geist Mono',monospace">Com TB</div>
+          <div style="font-weight:600;color:var(--teal);font-family:'Geist Mono',monospace">${avgCom?fmtK(avgCom)+'đ':'—'}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:7px;padding:9px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;font-family:'Geist Mono',monospace">Địa điểm</div>
+          <div style="font-size:12px;font-weight:500">${[...d.locs].slice(0,2).join(', ')||'—'}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderUnmatched() {
+  const um=DATA.filter(h=>!h.matched).sort((a,b)=>ts2ms(b)-ts2ms(a));
+  const tbody=document.getElementById('um-tbody');
+  if(!um.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--muted)">✓ Tất cả đã khớp DB 🎉</td></tr>`;return;}
+  tbody.innerHTML=um.map(h=>{
+    const p=getMin(h),d=new Date(ts2ms(h));
+    const ds=isNaN(d)?'—':d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'});
+    return `<tr>
+      <td><div style="font-weight:600">${h.hotel_name||'—'}</div></td>
+      <td>${h.stars?`<span class="star-b">★ ${h.stars}</span>`:'<span style="color:var(--muted)">?</span>'}</td>
+      <td style="font-size:12px;color:var(--muted)">${h.location||'—'}</td>
+      <td style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:600">${p?fmtK(p)+'đ':'—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${(h.sender_name||'—').split(' ').slice(0,3).join(' ')}</td>
+      <td style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted)">${ds}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+Chart.defaults.color='#5e7899';
+Chart.defaults.font.family='Geist';
+Chart.defaults.plugins.tooltip.backgroundColor='var(--bg3)';
+Chart.defaults.plugins.tooltip.borderColor='var(--line2)';
+Chart.defaults.plugins.tooltip.borderWidth=1;
+Chart.defaults.plugins.tooltip.padding=10;
+Chart.defaults.plugins.tooltip.titleColor='#d8e0ee';
+Chart.defaults.plugins.tooltip.bodyColor='#5e7899';
+
+refreshAll();
+setView('group');
+</script>
+</body>
+</html>

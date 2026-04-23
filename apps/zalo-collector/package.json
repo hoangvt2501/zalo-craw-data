@@ -1,0 +1,16 @@
+{
+  "name": "@hotel-intel/zalo-collector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node src/main.js",
+    "start": "node src/main.js",
+    "smoke:insert-raw": "node scripts/smoke-insert-raw-message.js",
+    "db:latest-raw": "node scripts/list-latest-raw-messages.js"
+  },
+  "dependencies": {
+    "pg": "^8.13.1",
+    "zca-js": "^2.1.2"
+  }
+}

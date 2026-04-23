@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hotel-intel.local/schemas/raw_message.schema.json",
+  "title": "RawMessage",
+  "type": "object",
+  "required": ["source", "text", "textHash"],
+  "properties": {
+    "source": { "type": "string" },
+    "groupId": { "type": ["string", "null"] },
+    "groupName": { "type": ["string", "null"] },
+    "senderId": { "type": ["string", "null"] },
+    "senderName": { "type": ["string", "null"] },
+    "messageId": { "type": ["string", "null"] },
+    "msgType": { "type": ["string", "null"] },
+    "text": { "type": "string" },
+    "textHash": { "type": "string" },
+    "sentAt": { "type": ["string", "null"], "format": "date-time" },
+    "rawPayload": { "type": "object" }
+  }
+}
+
